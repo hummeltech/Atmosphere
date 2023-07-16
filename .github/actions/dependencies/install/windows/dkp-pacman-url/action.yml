@@ -1,0 +1,19 @@
+---
+inputs:
+  package-urls:
+    description: List of DKP package URL(s) to install
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Download DKP build dependencies
+      run: |
+        curl --location --remote-name-all --silent \
+          ${{ inputs.package-urls }}
+      shell: msys2 {0}
+
+    - name: Install DKP build dependencies
+      run: |
+        pacman --noconfirm --upgrade *.pkg.tar.*
+      shell: msys2 {0}

@@ -1,0 +1,15 @@
+---
+inputs:
+  packages:
+    description: List of MSYS2 package(s) to install
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Setup MSYS2
+      uses: msys2/setup-msys2@v2
+      with:
+        install: ${{ inputs.packages }}
+        msystem: MSYS
+        update: true

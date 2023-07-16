@@ -1,0 +1,13 @@
+---
+inputs:
+  packages:
+    description: List of Python package(s) to install
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Install Python build dependencies
+      run: |
+        pip install lz4 pycryptodome
+      shell: bash --noprofile --norc -euxo pipefail {0}

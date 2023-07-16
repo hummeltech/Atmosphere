@@ -1,0 +1,68 @@
+---
+inputs:
+  pip-packages:
+    default: >-
+      lz4
+      pycryptodome
+  linux-packages:
+    default: >-
+      build-essential
+      python-pip
+      zstd
+  linux-dkp-package-urls:
+    required: true
+  windows-packages:
+    default: >-
+      base-devel
+      git
+      mingw-w64-x86_64-toolchain
+      mingw-w64-x86_64-python2
+      mingw-w64-x86_64-python2-pip
+      zip
+  windows-dkp-package-urls:
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Download DKP keyring
+      run: |
+        curl --location --remote-name-all --silent \
+          https://pkg.devkitpro.org/devkitpro-keyring.pkg.tar.xz
+      shell: bash --noprofile --norc -euxo pipefail {0}
+
+    - name: Install Dependencies (Linux)
+      uses: ./.github/actions/dependencies/install/linux/apt-get
+      with:
+        packages: ${{ inputs.linux-packages }}
+      if: runner.os == 'Linux'
+
+    - name: Install DKP Dependencies (Linux)
+      uses: ./.github/actions/dependencies/install/linux/dkp-pacman-url
+      with:
+        package-urls: ${{ inputs.linux-dkp-package-urls }}
+      if: runner.os == 'Linux'
+
+    - name: Install Python Dependencies (Linux)
+      uses: ./.github/actions/dependencies/install/linux/pip
+      with:
+        packages: ${{ inputs.pip-packages }}
+      if: runner.os == 'Linux'
+
+    - name: Install Dependencies (Windows)
+      uses: ./.github/actions/dependencies/install/windows/pacman
+      with:
+        packages: ${{ inputs.windows-packages }}
+      if: runner.os == 'Windows'
+
+    - name: Install DKP Dependencies (Windows)
+      uses: ./.github/actions/dependencies/install/windows/dkp-pacman-url
+      with:
+        package-urls: ${{ inputs.windows-dkp-package-urls }}
+      if: runner.os == 'Windows'
+
+    - name: Install Python Dependencies (Windows)
+      uses: ./.github/actions/dependencies/install/windows/pip
+      with:
+        packages: ${{ inputs.pip-packages }}
+      if: runner.os == 'Windows'
