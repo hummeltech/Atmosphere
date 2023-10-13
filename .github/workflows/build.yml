@@ -17,7 +17,7 @@ jobs:
       - name: Install build dependencies
         run: |
           apt-get --yes update
-          apt-get --yes install build-essential python-pip zstd
+          apt-get --yes install build-essential python3-pip zstd
 
       - name: Install DKP build dependencies
         run: |
@@ -27,7 +27,7 @@ jobs:
 
       - name: Install Python build dependencies
         run: |
-          pip install lz4 pycryptodome
+          pip3 install lz4 pycryptodome
 
       - name: Ensure GITHUB_WORKSPACE directory is considered safe
         run: |
