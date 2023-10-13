@@ -12,22 +12,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Install build dependencies
         run: |
+          echo $PATH
           apt-get --yes update
-          apt-get --yes install build-essential python-pip zstd
+          apt-get --yes dist-upgrade
+
+      - name: Update DKP package servers
+        run: |
+          sed --in-place \
+            --expression 's# https://pkg.devkitpro.org# https://web.archive.org/web/https://pkg.devkitpro.org#g' \
+            /opt/devkitpro/pacman/etc/pacman.conf
 
       - name: Install DKP build dependencies
         run: |
-          curl --location --remote-name-all \
-            https://web.archive.org/web/https://pkg.devkitpro.org/packages/linux/x86_64/hactool-1.4.0-3-x86_64.pkg.tar.xz
-          dkp-pacman --noconfirm --upgrade *.pkg.tar.*
-
-      - name: Install Python build dependencies
-        run: |
-          pip install lz4 pycryptodome
+          dkp-pacman --needed --noconfirm --refresh --sync --sysupgrade hactool
 
       - name: Ensure GITHUB_WORKSPACE directory is considered safe
         run: |
@@ -35,13 +36,14 @@ jobs:
 
       - name: Build
         run: |
-          make -j3
+          make --jobs $(nproc)
+        shell: bash
 
   Windows:
     runs-on: windows-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup MSYS2 
         uses: msys2/setup-msys2@v2
@@ -49,9 +51,11 @@ jobs:
           install: >-
             base-devel
             git
+            mingw-w64-x86_64-python
+            mingw-w64-x86_64-python-lz4
+            mingw-w64-x86_64-python-pip
+            mingw-w64-x86_64-python-pycryptodome
             mingw-w64-x86_64-toolchain
-            mingw-w64-x86_64-python2
-            mingw-w64-x86_64-python2-pip
             zip
           msystem: MSYS
           update: true
@@ -83,18 +87,13 @@ jobs:
 
       - name: Install DKP build dependencies
         run: |
-          pacman --noconfirm --sync --refresh --needed \
+          pacman --needed --noconfirm --refresh --sync --sysupgrade \
             devkitARM \
             devkitARM-gdb \
             hactool \
             switch-dev \
             switch-glm \
             switch-libjpeg-turbo
-        shell: msys2 {0}
-
-      - name: Install Python build dependencies
-        run: |
-          /mingw64/bin/pip2 install lz4 pycryptodome
         shell: msys2 {0}
 
       - name: Ensure GITHUB_WORKSPACE directory is considered safe
@@ -105,8 +104,6 @@ jobs:
       - name: Build
         run: |
           source /etc/profile.d/devkit-env.sh
-          mv /mingw64/bin/python.exe /mingw64/bin/python.backup.exe
-          ln -s /mingw64/bin/python2.exe /mingw64/bin/python.exe
           export PATH=$PATH:/mingw64/bin
           make -j3
         shell: msys2 {0}
